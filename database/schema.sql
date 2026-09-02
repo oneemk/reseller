@@ -7,61 +7,22 @@ CREATE TABLE IF NOT EXISTS users (
   active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 CREATE TABLE IF NOT EXISTS mikrotiks (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(120) NOT NULL,
-  host VARCHAR(255) NOT NULL,
-  api_port SMALLINT UNSIGNED NOT NULL DEFAULT 8728,
-  api_ssl TINYINT(1) NOT NULL DEFAULT 0,
-  username VARCHAR(120) NOT NULL,
-  password_enc TEXT NOT NULL,
-  notes TEXT NULL,
-  active TINYINT(1) NOT NULL DEFAULT 1,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,name VARCHAR(120) NOT NULL,host VARCHAR(255) NOT NULL,api_port SMALLINT UNSIGNED NOT NULL DEFAULT 8728,api_ssl TINYINT(1) NOT NULL DEFAULT 0,username VARCHAR(120) NOT NULL,password_enc TEXT NOT NULL,notes TEXT NULL,active TINYINT(1) NOT NULL DEFAULT 1,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 CREATE TABLE IF NOT EXISTS olts (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(120) NOT NULL,
-  vendor VARCHAR(80) NOT NULL DEFAULT 'ECOM',
-  host VARCHAR(255) NOT NULL,
-  port SMALLINT UNSIGNED NOT NULL DEFAULT 22,
-  username VARCHAR(120) NOT NULL,
-  password_enc TEXT NOT NULL,
-  status_command TEXT NULL,
-  onu_command TEXT NULL,
-  reboot_command TEXT NULL,
-  notes TEXT NULL,
-  active TINYINT(1) NOT NULL DEFAULT 1,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,name VARCHAR(120) NOT NULL,vendor VARCHAR(80) NOT NULL DEFAULT 'ECOM',host VARCHAR(255) NOT NULL,port SMALLINT UNSIGNED NOT NULL DEFAULT 22,username VARCHAR(120) NOT NULL,password_enc TEXT NOT NULL,status_command TEXT NULL,onu_command TEXT NULL,reboot_command TEXT NULL,notes TEXT NULL,active TINYINT(1) NOT NULL DEFAULT 1,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 CREATE TABLE IF NOT EXISTS resource_permissions (
-  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  reseller_id INT UNSIGNED NOT NULL,
-  resource_type ENUM('mikrotik','olt') NOT NULL,
-  resource_id INT UNSIGNED NOT NULL,
-  can_view TINYINT(1) NOT NULL DEFAULT 1,
-  can_manage TINYINT(1) NOT NULL DEFAULT 0,
-  UNIQUE KEY uq_permission (reseller_id,resource_type,resource_id),
-  CONSTRAINT fk_perm_user FOREIGN KEY (reseller_id) REFERENCES users(id) ON DELETE CASCADE
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,reseller_id INT UNSIGNED NOT NULL,resource_type ENUM('mikrotik','olt') NOT NULL,resource_id INT UNSIGNED NOT NULL,can_view TINYINT(1) NOT NULL DEFAULT 1,can_manage TINYINT(1) NOT NULL DEFAULT 0,UNIQUE KEY uq_permission(reseller_id,resource_type,resource_id),CONSTRAINT fk_perm_user FOREIGN KEY(reseller_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
+CREATE TABLE IF NOT EXISTS pppoe_assignments (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,reseller_id INT UNSIGNED NOT NULL,mikrotik_id INT UNSIGNED NOT NULL,secret_name VARCHAR(191) NOT NULL,customer_name VARCHAR(150) NULL,customer_phone VARCHAR(40) NULL,customer_address TEXT NULL,package_name VARCHAR(120) NULL,UNIQUE KEY uq_pppoe_owner(mikrotik_id,secret_name),CONSTRAINT fk_assign_user FOREIGN KEY(reseller_id) REFERENCES users(id) ON DELETE CASCADE,CONSTRAINT fk_assign_router FOREIGN KEY(mikrotik_id) REFERENCES mikrotiks(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 CREATE TABLE IF NOT EXISTS audit_logs (
-  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  user_id INT UNSIGNED NULL,
-  action VARCHAR(120) NOT NULL,
-  resource_type VARCHAR(40) NULL,
-  resource_id INT UNSIGNED NULL,
-  details TEXT NULL,
-  ip_address VARCHAR(64) NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_audit_user (user_id), INDEX idx_audit_created (created_at)
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,user_id INT UNSIGNED NULL,action VARCHAR(120) NOT NULL,resource_type VARCHAR(40) NULL,resource_id INT UNSIGNED NULL,details TEXT NULL,ip_address VARCHAR(64) NULL,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,INDEX idx_audit_user(user_id),INDEX idx_audit_created(created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Passwords are bcrypt hashes. Change these accounts immediately after first login.
-INSERT INTO users (username,password_hash,role,full_name) VALUES
+INSERT INTO users(username,password_hash,role,full_name) VALUES
 ('oneem','$2y$12$DV25YkHBOxxhI/nyjNmYoeY7YZmBGjIx3RoT1J/wxEjkSMWqHPy1K','super_admin','Super Admin'),
 ('monir','$2y$12$VivAu7tjTeCpexrAxxC3HOsL7NrLCjErygZbYhPhMkcipz8WKIbBO','reseller','Reseller 1'),
 ('halim','$2y$12$MyIHOdqg//eISg7753Kq0.ZWgCxcvbuHVctlBbuF74t.lG.UihuAu','reseller','Reseller 2')
